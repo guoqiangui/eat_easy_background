@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>评论管理</title>
+		<link rel="stylesheet" href="__STATIC__/css/base.css">
+		<link rel="stylesheet" href="__STATIC__/css/b-comment-manage.css">
+	</head>
+	<body>
+		<div class="wrapper">
+			<!-- 顶部工具栏 -->
+			<div class="toolbar">
+				<!-- 左侧导航栏 -->
+				<div class="nav-bar">
+					<ul class="nav-list">
+						<li class="nav-list-item"><a href="#" class="active">全部评论（47572）</a></li>
+						<li class="nav-list-item separator">|</li>
+						<li class="nav-list-item"><a href="#">举报评论（57）</a></li>
+					</ul>
+				</div>
+				<!-- 右侧搜索 -->
+				<div class="search">
+					<input type="text" placeholder="搜评论">
+					<button>搜索</button>
+				</div>
+			</div>
+			<!-- 评论管理区域 -->
+			<div class="comment-manage">
+				<table>
+					<thead>
+						<tr>
+							<th>序号</th>
+							<th>评论内容</th>
+							<th>用户名</th>
+							<th>评论时间</th>
+							<th>操作</th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php
+						if($commentArr) {
+							foreach($commentArr as $value) {
+						?>
+								<tr>
+									<td><?php echo $value['id'] ?></td>
+									<td><?php echo $value['content'] ?></td>
+									<td><?php echo $value['username'] ?></td>
+									<td><?php echo $value['publish_time'] ?></td>
+									<td>
+										<button class="btn-delete">删除</button>
+									</td>
+								</tr>
+						<?php
+							}
+						} else {
+							echo '<h3 style="color: red;">无法查找到数据</h3>';
+						}
+						?>
+						
+						
+						
+						<tr>
+							<td>01</td>
+							<td>非常好看</td>
+							<td>小白</td>
+							<td>2019-3-8</td>
+							<td>
+								<button>删除</button>
+							</td>
+						</tr>
+						<tr>
+							<td>02</td>
+							<td>我觉得很普通</td>
+							<td>小黑</td>
+							<td>2019-3-8</td>
+							<td>
+								<button>删除</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</body>
+</html>

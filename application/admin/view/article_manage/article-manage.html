@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>内容管理</title>
+		<link rel="stylesheet" href="__STATIC__/css/base.css">
+		<link rel="stylesheet" href="__STATIC__/css/b-content-manage.css">
+	</head>
+	<body>
+		<!-- 内容状态 -->
+		<nav class="content-status">
+			<ul class="content-status-list clearfix">
+				<li class="content-status-item">
+					<a href="#" class="uncheck active">待审核</a>
+				</li>
+				<li class="content-status-item">
+					<a href="#" class="published">已通过</a>
+				</li>
+				<li class="content-status-item">
+					<a href="#" class="unpass">不通过</a>
+				</li>
+			</ul>
+		</nav>
+		<!-- 文章列表 -->
+		<div class="article-list-wrapper">
+			<ul class="article-list"></ul>
+		</div>
+		<!-- 预览文章的模态框 -->
+		<div class="preview-modal">
+			<div class="preview-content-wrapper">
+				<button class="btn-close" title="关闭">X</button>
+				<button class="btn-pass" title="通过审核">通过</button>
+				<button class="btn-fail" title="审核不通过">不通过</button>
+				
+				<div class="preview-content">
+					<h1 class="title"></h1>
+					<div class="article"></div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- 分页 -->
+		<!-- <div class="pagination-wrapper">
+			<ul class="pagination clearfix">
+				<li class="page-first"><a href="#">首页</a></li>
+				<li class="page-pre"><a href="#">上一页</a></li>
+				<li class="page-number"><a href="#">1</a></li>
+				<li class="page-number"><a href="#">2</a></li>
+				<li class="page-number"><a href="#">3</a></li>
+				<li class="page-separator"><a href="#">...</a></li>
+				<li class="page-number"><a href="#">9</a></li>
+				<li class="page-number"><a href="#">10</a></li>
+				<li class="page-next"><a href="#">下一页</a></li>
+				<li class="page-last"><a href="#">尾页</a></li>
+			</ul>
+		</div> -->
+	</body>
+</html>
+<script src="__STATIC__/lib/jquery-1.11.1.min.js"></script>
+<script>
+	$(function () {
+		var serverName = "localhost:8080";
+		// 文章id
+		var id;
+		
+		// 渲染指定状态的文章
+		function renderArticle(state) {
+			$.ajax({
+				url: `http://${serverName}/eat-easy-background/public/admin/article_manage/getArticleByState`,
+				type: "post",
+				data: {
+					state: state
+				},
+				success: function (articleArr) {
+					// 模板字符串
+					var allArticle = ``;
+					
+					articleArr.forEach(function (article, index) {
+						// 不断拼接
+						allArticle += `
+							<li class="article-list-item">
+								<span style="display: none;" class="article-id">${article.id}</span>
+								<!-- 文章信息 -->
+								<div class="article-info">
+									<!-- 缩略图（没有缩略图就加载默认缩略图） -->
+									<img src="${article.thumbnail ? article.thumbnail : '__STATIC__/img/缩略图.png'}" class="thumbnail">
+									<div class="title-time-wrapper">
+										<!-- 文章标题 -->
+										<h2 class="article-title">${article.title}</h2>
+										<!-- 修改时间 -->
+										<div class="publish-time">${article.modify_time}</div>
+									</div>
+								</div>
+								<!-- 操作 -->
+								<div class="article-operate">
+									<button class="modify">查看</button>
+								</div>
+							</li>
+						`;
+						
+					});
+					
+					// 拼接完后添加到article-list中
+					$(".article-list").html(allArticle);
+					
+				}
+			});
+		}
+		
+		// 默认渲染待审核文章
+		renderArticle("uncheck");
+		
+		// 点击文章状态tab栏
+		$(".content-status .content-status-list a").on("click", function () {
+			// 进行切换
+			$(".content-status .content-status-list a").removeClass("active");
+			$(this).addClass("active");
+			
+			// 获取state
+			var state;
+			if($(this).hasClass("uncheck")) {
+				state = "uncheck";
+			} else if($(this).hasClass("published")) {
+				state = "published";
+			} else if($(this).hasClass("unpass")) {
+				state = "unpass";
+			}
+			
+			// 渲染对应状态的文章列表
+			renderArticle(state);
+		});
+		
+		// 点击查看按钮
+		$(".article-list").on("click", function (e) {
+			if($(e.target).hasClass("modify")) {
+				// 获取文章id
+				id = e.target.parentNode.parentNode.firstElementChild.innerHTML;
+				
+				// 弹出模态框
+				$.ajax({
+					url: `http://${serverName}/eat-easy-background/public/admin/article_manage/getArticleById`,
+					type: "post",
+					data: {
+						id: id
+					},
+					success: function (article) {
+						// console.log(article);
+						
+						// 将编辑的内容和标题添加到其中并显示模态框, 这里只能用find(), children()只能找子元素
+						$(".preview-modal").show().find(".title").html(article.title).siblings(".article").html(article.content);
+					}
+				});
+				
+				
+				
+			}
+		});
+		
+		// 隐藏模态框(利用冒泡)
+		$(".preview-modal").on("click", function (e) {
+			// 点击非预览区域或点击了关闭预览按钮，隐藏模态框
+			if($(e.target).hasClass("preview-modal") || $(e.target).hasClass("btn-close")) {
+				$(this).hide();
+			}
+		});
+		
+		// 点击通过按钮
+		$(".btn-pass").on("click", function () {
+			// 修改文章状态为已发布
+			$.ajax({
+				url: `http://${serverName}/eat-easy-background/public/admin/article_manage/modifyState`,
+				type: "post",
+				data: {
+					id: id,
+					state: "published"
+				}
+			});
+			
+			alert("提交成功");
+			// 刷新页面
+			history.go(0);
+		});
+		
+		// 点击不通过按钮
+		$(".btn-fail").on("click", function () {
+			// 修改文章状态为未通过
+			$.ajax({
+				url: `http://${serverName}/eat-easy-background/public/admin/article_manage/modifyState`,
+				type: "post",
+				data: {
+					id: id,
+					state: "unpass"
+				}
+			});
+			
+			alert("提交成功");
+			// 刷新页面
+			history.go(0);
+		});
+	});
+</script>
